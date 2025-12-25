@@ -1,0 +1,74 @@
+# PROJECT MEMORY
+# Topic: Dynamic Role-Based Dashboard Implementation
+# Date: 2025-12-26
+
+## 1. Objective
+Implement a dynamic, single-route dashboard (`/dashboard`) that automatically adapts its UI and functionality based on the logged-in user's role. The system must enforce strict backend permissions while providing a flexible frontend experience.
+
+## 2. Core Architecture
+- **Framework**: Laravel 12 + Inertia.js + React.
+- **Principle**: "Backend-Driven UI". The backend dictates what the frontend renders.
+- **Routing**: Single entry point `DashboardController@index`.
+
+## 3. Database & Roles
+- **Table**: `roles` (id, name, slug).
+- **Users**: Added `role_id` foreign key.
+- **Seeder**: `RoleSeeder` creates 4 roles:
+  1. `super_admin`: Full system control.
+  2. `admin`: Administrative tasks.
+  3. `mentor`: Content management.
+  4. `student`: Content consumption.
+
+## 4. Backend Implementation
+- **Model**: `User` model now has `role()` relationship and helper methods (`hasRole`, `isSuperAdmin`, etc.).
+- **Authorization**:
+  - `AppServiceProvider` defines Gates (`manage-users`, `manage-roles`, `manage-content`, etc.).
+  - `WidgetManager` service resolves authorized widgets for the user.
+  - `DashboardController` constructs a `dashboardConfig` JSON object containing:
+    - User Role.
+    - Sidebar Items (filtered by role).
+    - Widgets (resolved via `WidgetManager` -> `[{key, data}]`).
+    - Permission Flags (for UI toggles).
+- **Enforcement**: Middleware `can:pemission-name` protects specific routes.
+
+## 5. Widget System Architecture
+- **Concept**: Modular, class-based widget system.
+- **Contract**: `App\Services\Dashboard\Widget` interface.
+- **Manager**: `App\Services\Dashboard\WidgetManager` handles registration, authorization, and caching.
+- **Implementations**:
+  - **Admin**: `PlatformOverviewWidget`, `UserActivityWidget`
+  - **Mentor**: `MyCoursesWidget`, `StudentProgressTrackerWidget`
+  - **Student**: `MyLearningProgressWidget`, `TodaysStudyPlanWidget`
+- **Frontend**: `WidgetGrid.tsx` maps widget keys (e.g., `platform_overview`) to specific React components.
+
+## 6. Frontend Implementation
+- **Tech Stack**: React (tsx), Tailwind CSS, Lucide Icons.
+- **Page**: `Dashboard.tsx` acts as the main container, receiving `dashboardConfig`.
+- **Components**:
+  - `DashboardLayout.tsx`: Renders the dynamic sidebar.
+  - `Sidebar.tsx`: Iterates over backend-provided menu items.
+  - `WidgetGrid.tsx`: Dynamically renders widgets based on registry.
+  - `ActionPanel.tsx`: Conditionally renders buttons based on permission flags.
+
+## 7. Current State & Verification
+- **Users Created**:
+  - `super_admin@example.com` (password: `password`)
+  - `admin@example.com` (password: `password`)
+  - `mentor@example.com` (password: `password`)
+  - `student@example.com` (password: `password`)
+- **Verification**:
+  - Verified that Super Admins see all widgets and actions.
+  - Verified that Students have a restricted view.
+  - Verified that backend routes reject unauthorized checks.
+
+## 7. Key Files Created/Modified
+- `database/migrations/xxxx_create_roles_table.php`
+- `database/seeders/RoleSeeder.php` & `DatabaseSeeder.php`
+- `app/Models/Role.php` & `User.php`
+- `app/Http/Controllers/DashboardController.php`
+- `app/Providers/AppServiceProvider.php` (Gates)
+- `resources/js/Pages/Dashboard.tsx`
+- `resources/js/Layouts/DashboardLayout.tsx`
+- `resources/js/Components/Dashboard/Sidebar.tsx`
+- `resources/js/Components/Dashboard/WidgetGrid.tsx`
+- `resources/js/Components/Dashboard/ActionPanel.tsx`

@@ -22,6 +22,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role_id',
+        'roll_number',
     ];
 
     /**
@@ -49,4 +51,55 @@ class User extends Authenticatable
             'two_factor_confirmed_at' => 'datetime',
         ];
     }
+
+    /**
+     * Get the role associated with the user.
+     */
+    public function role(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * Check if the user has a specific role by slug.
+     */
+    public function hasRole(string $roleSlug): bool
+    {
+        return $this->role?->slug === $roleSlug;
+    }
+
+    /**
+     * Check if the user is a Super Admin.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('super_admin');
+    }
+
+    /**
+     * Check if the user is an Admin (operational).
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin');
+    }
+
+    /**
+     * Check if the user is a Mentor.
+     */
+    public function isMentor(): bool
+    {
+        return $this->hasRole('mentor');
+    }
+
+    /**
+     * Check if the user is a Student.
+     */
+    public function isStudent(): bool
+    {
+        return $this->hasRole('student');
+    
+}
+
+
 }
