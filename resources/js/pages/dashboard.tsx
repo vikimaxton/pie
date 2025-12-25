@@ -1,36 +1,42 @@
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
-import AppLayout from '@/layouts/app-layout';
-import { dashboard } from '@/routes';
-import { type BreadcrumbItem } from '@/types';
+import DashboardLayout from '@/layouts/dashboard-layout';
+import WidgetGrid from '@/components/dashboard/widget-grid';
+import ActionPanel from '@/components/dashboard/action-panel';
 import { Head } from '@inertiajs/react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard().url,
-    },
-];
+interface DashboardConfig {
+    role: string;
+    sidebar: any[];
+    widgets: any[];
+    permissions: Record<string, boolean>;
+}
 
-export default function Dashboard() {
+interface DashboardProps {
+    dashboardConfig: DashboardConfig;
+}
+
+export default function Dashboard({ dashboardConfig }: DashboardProps) {
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <DashboardLayout sidebarItems={dashboardConfig.sidebar}>
             <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                </div>
-                <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                </div>
+
+            <div className="mb-8">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4 dark:text-gray-200">
+                    Welcome back, {dashboardConfig.role.replace('_', ' ')}!
+                </h2>
+
+                <ActionPanel permissions={dashboardConfig.permissions} />
+
+                <WidgetGrid widgets={dashboardConfig.widgets} />
             </div>
-        </AppLayout>
+
+            {/* Example of Role-Based Conditional Rendering */}
+            {dashboardConfig.permissions.can_manage_roles && (
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md mb-4 dark:bg-yellow-900/20 dark:border-yellow-700">
+                    <p className="text-yellow-700 dark:text-yellow-400">
+                        You have super admin privileges. You can manage system roles.
+                    </p>
+                </div>
+            )}
+        </DashboardLayout>
     );
 }
